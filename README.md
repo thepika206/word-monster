@@ -86,11 +86,15 @@ some of the fundamentals map onto the code:
 
 ## Deployment
 
-This is a static site, deployed to GitHub Pages:
+This is a static site, deployed to GitHub Pages via GitHub Actions
+(`.github/workflows/deploy.yml`): every push to `main` builds the site with
+Vite and publishes `dist/` to Pages automatically.
 
-1. `vite.config.js` sets `base: '/word-monster/'` so built asset URLs resolve
-   correctly under `https://<username>.github.io/word-monster/`. Update this
-   if the repo name changes.
-2. `npm run build` outputs the static site to `dist/`.
-3. Publish `dist/` to the `gh-pages` branch (or configure a GitHub Actions
-   workflow that builds and deploys on push to `main`).
+- `vite.config.js` sets `base: '/word-monster/'` so built asset URLs resolve
+  correctly under `https://<username>.github.io/word-monster/`. Update this
+  if the repo name changes.
+- One-time setup (per repo): in GitHub, go to **Settings → Pages** and set
+  **Source** to **GitHub Actions**. After that, pushing to `main` triggers a
+  build + deploy automatically — no manual steps needed.
+- To trigger a deploy without a code change, use the **Run workflow** button
+  under the Actions tab (the workflow also listens for `workflow_dispatch`).
