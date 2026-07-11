@@ -7,7 +7,6 @@ const WORDS_PER_ROUND = 5
 const ENEMY_COUNT = 1
 const ENEMY_MOVE_MS = 2700
 const STARTING_LIVES = 3
-const ROUND_CLEAR_DELAY_MS = 700
 const PROMPT_TEXT = 'Eat the correctly spelled words'
 
 function randomItem(list) {
@@ -137,9 +136,7 @@ export function useGameState() {
             correctRemaining.value -= 1
             message.value = 'Nice!'
             if (correctRemaining.value <= 0) {
-                status.value = 'transition'
-                round.value += 1
-                setTimeout(startRound, ROUND_CLEAR_DELAY_MS)
+                status.value = 'round-complete'
             }
         } else {
             message.value = 'Oops!'
@@ -166,6 +163,11 @@ export function useGameState() {
             }
         }
         checkEnemyCollision()
+    }
+
+    function continueRound() {
+        round.value += 1
+        startRound()
     }
 
     function restart() {
@@ -196,6 +198,7 @@ export function useGameState() {
         tiles,
         monster,
         enemies,
+        continueRound,
         moveMonster,
         eatTile,
         restart,

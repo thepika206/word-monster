@@ -5,7 +5,7 @@
         <span>Score: {{ score }}</span>
         <span>Round: {{ round }}</span>
         <span aria-label="lives remaining">{{
-            '❤️'.repeat(Math.max(lives, 0)) || 'No lives left'
+            '❤️'.repeat(Math.max(livesLeft, 0)) || 'No lives left'
         }}</span>
     </div>
 </template>
@@ -14,6 +14,6 @@
 defineProps({
     score: { type: Number, required: true },
     round: { type: Number, required: true },
-    lives: { type: Number, required: true },
+    livesLeft: { type: Number, required: true },
 })
 </script>

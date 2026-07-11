@@ -4,7 +4,7 @@
             🧟 Word Monster
         </h1>
 
-        <ScoreBar :score="score" :round="round" :lives="lives" />
+        <ScoreBar :score="score" :round="round" :lives-left="lives" />
         <PromptBanner :prompt-text="promptText" :message="message" />
 
         <div class="relative w-full max-w-xl">
@@ -16,6 +16,12 @@
                 :rows="ROWS"
             />
             <GameOverlay v-if="status === 'lost'" :score="score" @restart="restart" />
+            <RoundCompleteOverlay
+                v-if="status === 'round-complete'"
+                :round="round"
+                :score="score"
+                @continue="continueRound"
+            />
         </div>
 
         <TouchControls @move="moveMonster" @eat="eatTile" />
@@ -31,6 +37,7 @@ import PromptBanner from './components/PromptBanner.vue'
 import GameGrid from './components/GameGrid.vue'
 import TouchControls from './components/TouchControls.vue'
 import GameOverlay from './components/GameOverlay.vue'
+import RoundCompleteOverlay from './components/RoundCompleteOverlay.vue'
 import { useGameState } from './composables/useGameState.js'
 import { useKeyboardControls } from './composables/useKeyboardControls.js'
 
@@ -49,6 +56,7 @@ const {
     moveMonster,
     eatTile,
     restart,
+    continueRound,
 } = useGameState()
 
 useKeyboardControls(moveMonster, eatTile)
