@@ -82,7 +82,10 @@ some of the fundamentals map onto the code:
   `vite.config.js` with a single `@import 'tailwindcss'` in `src/style.css`
   — no separate `tailwind.config.js` needed. Styling is done entirely with
   utility classes directly in templates (mobile-first: base classes apply
-  to small screens, `sm:` prefixes adjust for larger ones).
+  to small screens, `sm:` prefixes adjust for larger ones). See
+  [docs/tailwind-cheatsheet.md](docs/tailwind-cheatsheet.md) for a
+  reference of every utility class used in this project, grouped by
+  category.
 
 ## Deployment
 
