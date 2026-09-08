@@ -15,6 +15,7 @@
                 :cols="COLS"
                 :rows="ROWS"
             />
+            <StartScreen v-if="status === 'start'" @start="startGame" />
             <GameOverlay v-if="status === 'lost'" :score="score" @restart="restart" />
             <RoundCompleteOverlay
                 v-if="status === 'round-complete'"
@@ -38,6 +39,7 @@ import GameGrid from './components/GameGrid.vue'
 import TouchControls from './components/TouchControls.vue'
 import GameOverlay from './components/GameOverlay.vue'
 import RoundCompleteOverlay from './components/RoundCompleteOverlay.vue'
+import StartScreen from './components/StartScreen.vue'
 import { useGameState } from './composables/useGameState.js'
 import { useKeyboardControls } from './composables/useKeyboardControls.js'
 
@@ -57,6 +59,7 @@ const {
     eatTile,
     restart,
     continueRound,
+    startGame,
 } = useGameState()
 
 useKeyboardControls(moveMonster, eatTile)

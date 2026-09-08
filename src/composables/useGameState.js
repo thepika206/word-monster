@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { onUnmounted, reactive, ref } from 'vue'
 import { challenges } from '../data/spellingChallenges.js'
 
 export const COLS = 5
@@ -7,6 +7,7 @@ const WORDS_PER_ROUND = 5
 const ENEMY_COUNT = 1
 const ENEMY_MOVE_MS = 2700
 const STARTING_LIVES = 3
+const HIT_PAUSE_MS = 1000
 const PROMPT_TEXT = 'Eat the correctly spelled words'
 
 function randomItem(list) {
@@ -26,7 +27,7 @@ export function useGameState() {
     const score = ref(0)
     const lives = ref(STARTING_LIVES)
     const round = ref(1)
-    const status = ref('playing') // 'playing' | 'transition' | 'lost'
+    const status = ref('start') // 'start' | 'playing' | 'hit' | 'round-complete' | 'lost'
     const message = ref('')
     const promptText = ref('')
     const tiles = ref([])
@@ -35,6 +36,7 @@ export function useGameState() {
     const enemies = reactive([])
 
     let enemyTimer = null
+    let hitTimer = null
 
     function tileIndex(x, y) {
         return y * COLS + x
@@ -78,7 +80,7 @@ export function useGameState() {
 
     function spawnEnemies() {
         enemies.splice(0, enemies.length)
-        const spots = emptyCells([{ x: monster.x, y: monster.y }])
+        const spots = emptyCells([{ x: monster.x, y: monster.y }]).filter((c) => c.y === 0)
         for (let i = 0; i < ENEMY_COUNT && spots.length > 0; i++) {
             const idx = Math.floor(Math.random() * spots.length)
             const [spot] = spots.splice(idx, 1)
@@ -87,6 +89,10 @@ export function useGameState() {
     }
 
     function startRound() {
+        if (hitTimer) {
+            clearTimeout(hitTimer)
+            hitTimer = null
+        }
         promptText.value = PROMPT_TEXT
         tiles.value = buildTiles(pickRoundWords())
         correctRemaining.value = tiles.value.filter((t) => t.correct).length
@@ -107,12 +113,18 @@ export function useGameState() {
 
     function checkEnemyCollision() {
         const hit = enemies.some((e) => e.x === monster.x && e.y === monster.y)
-        if (hit && status.value === 'playing') {
-            message.value = 'Ouch!'
+        if (!hit || status.value !== 'playing') return
+        message.value = 'Ouch!'
+        status.value = 'hit'
+        loseLife()
+        if (status.value === 'lost') return
+        hitTimer = setTimeout(() => {
             monster.x = Math.floor(COLS / 2)
             monster.y = ROWS - 1
-            loseLife()
-        }
+            spawnEnemies()
+            message.value = ''
+            status.value = 'playing'
+        }, HIT_PAUSE_MS)
     }
 
     function moveMonster(dx, dy) {
@@ -177,13 +189,14 @@ export function useGameState() {
         startRound()
     }
 
-    onMounted(() => {
+    function startGame() {
         startRound()
         enemyTimer = setInterval(moveEnemiesOnce, ENEMY_MOVE_MS)
-    })
+    }
 
     onUnmounted(() => {
         if (enemyTimer) clearInterval(enemyTimer)
+        if (hitTimer) clearTimeout(hitTimer)
     })
 
     return {
@@ -202,5 +215,6 @@ export function useGameState() {
         moveMonster,
         eatTile,
         restart,
+        startGame,
     }
 }
