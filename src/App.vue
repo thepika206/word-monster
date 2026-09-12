@@ -62,5 +62,5 @@ const {
     startGame,
 } = useGameState()
 
-useKeyboardControls(moveMonster, eatTile)
+useKeyboardControls(moveMonster, eatTile, status)
 </script>

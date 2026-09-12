@@ -13,11 +13,22 @@ const KEY_DIRECTIONS = {
 
 const MOVE_COOLDOWN_MS = 120
 
-export function useKeyboardControls(moveMonster, eatTile) {
+export function useKeyboardControls(moveMonster, eatTile, status = { value: 'playing' }) {
     let lastMoveAt = 0
 
     function handleKeydown(event) {
-        if (event.code === 'Space') {
+        if (status.value === 'start') return
+
+        const activeElement = document.activeElement
+        const isInteractiveElementFocused =
+            activeElement instanceof HTMLElement &&
+            ['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(activeElement.tagName)
+
+        if (isInteractiveElementFocused) {
+            return
+        }
+
+        if (event.code === 'Space' || event.key === 'Enter') {
             event.preventDefault()
             eatTile()
             return

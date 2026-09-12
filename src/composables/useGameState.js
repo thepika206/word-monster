@@ -3,7 +3,7 @@ import { challenges } from '../data/spellingChallenges.js'
 import { synonymChallenges } from '../data/synonymChallenges.js'
 
 export const COLS = 5
-export const ROWS = 4
+export const ROWS = 5
 const WORDS_PER_ROUND = 5
 const ENEMY_COUNT = 1
 const ENEMY_MOVE_MS = 3600
@@ -87,32 +87,23 @@ export function useGameState() {
     }
 
     function buildSynonymTiles(challenge) {
-        const target = randomItem(challenge.correct)
-        const validTargetWord = target
-        const otherSynonyms = shuffle([
+        const target = challenge.target
+        const correctWords = shuffle([
             ...new Set(challenge.correct.filter((word) => word !== target)),
         ])
-        const incorrectWords = shuffle([...new Set(challenge.incorrect)])
-        const fillerWords = shuffle([...new Set(challenge.filler || [])])
+        const distractors = shuffle([...new Set(challenge.incorrect)])
         const total = COLS * ROWS
-        const boardPool = [...otherSynonyms, ...incorrectWords, ...fillerWords]
-        const entries = shuffle(boardPool)
+        const distractorCount = Math.max(0, total - correctWords.length)
+        const entries = [...correctWords, ...distractors.slice(0, distractorCount)]
 
-        while (entries.length < total - 1) {
-            entries.push(randomItem(boardPool))
-        }
-
-        entries.push(validTargetWord)
-
-        const placedEntries = entries.slice(0, total).map((word) => ({
+        const placedEntries = shuffle(entries).map((word) => ({
             word,
-            correct: word === validTargetWord,
+            correct: correctWords.includes(word),
         }))
 
-        const shuffled = shuffle(placedEntries)
         return {
             target,
-            tileData: shuffled.map((entry, i) => ({
+            tileData: placedEntries.map((entry, i) => ({
                 id: `${round.value}-${i}-${entry.word}`,
                 x: i % COLS,
                 y: Math.floor(i / COLS),

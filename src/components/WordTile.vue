@@ -1,6 +1,6 @@
 <template>
     <div
-        class="aspect-square flex min-w-0 items-center justify-center overflow-hidden rounded-md px-1 pt-2 text-center text-[0.65rem] font-semibold uppercase leading-tight transition-opacity duration-200 sm:text-sm"
+        class="flex aspect-square min-w-0 items-end justify-center overflow-hidden rounded-md px-1 pb-1 text-center text-[0.65rem] font-semibold uppercase leading-tight transition-opacity duration-200 sm:text-sm"
         :class="[
             tile.eaten ? 'opacity-0' : 'border text-emerald-50',
             revealCorrect && tile.correct && !tile.eaten
@@ -8,7 +8,7 @@
                 : 'border-emerald-600/50 bg-emerald-800/40',
         ]"
     >
-        <span v-if="!tile.eaten" class="self-end">{{ tile.word }}</span>
+        <span v-if="!tile.eaten" class="block">{{ tile.word }}</span>
     </div>
 </template>
 

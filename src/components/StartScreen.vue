@@ -16,7 +16,7 @@
                         ? 'bg-emerald-600 text-white'
                         : 'bg-slate-700 text-slate-200'
                 "
-                @click="selectedMode = 'spelling'"
+                @click="startGame('spelling')"
             >
                 Spelling
             </button>
@@ -29,19 +29,11 @@
                         ? 'bg-emerald-600 text-white'
                         : 'bg-slate-700 text-slate-200'
                 "
-                @click="selectedMode = 'synonyms'"
+                @click="startGame('synonyms')"
             >
                 Synonyms
             </button>
         </div>
-        <button
-            ref="startButton"
-            type="button"
-            class="rounded-lg bg-cyan-500 px-5 py-2 font-semibold text-slate-950 transition hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-300"
-            @click="$emit('start', selectedMode)"
-        >
-            Start
-        </button>
         <ul class="space-y-1 text-left text-sm text-slate-300">
             <li>🍴 Eat correct tiles to score points and clear the round.</li>
             <li>⚠️ Eating a wrong tile or touching an enemy costs a life.</li>
@@ -57,12 +49,16 @@ const props = defineProps({
     mode: { type: String, default: 'spelling' },
 })
 
-const startButton = ref(null)
 const spellingButton = ref(null)
 const synonymButton = ref(null)
 const selectedMode = ref(props.mode)
 
 const emit = defineEmits(['start'])
+
+function startGame(mode) {
+    selectedMode.value = mode
+    emit('start', mode)
+}
 
 function focusModeButton(mode) {
     if (mode === 'spelling') {
@@ -78,6 +74,7 @@ function handleKeydown(event) {
         selectedMode.value = 'spelling'
         focusModeButton(selectedMode.value)
         event.preventDefault()
+        event.stopPropagation()
         return
     }
 
@@ -85,12 +82,14 @@ function handleKeydown(event) {
         selectedMode.value = 'synonyms'
         focusModeButton(selectedMode.value)
         event.preventDefault()
+        event.stopPropagation()
         return
     }
 
     if (event.key === 'Enter' || event.key === ' ') {
-        emit('start', selectedMode.value)
         event.preventDefault()
+        event.stopPropagation()
+        startGame(selectedMode.value)
     }
 }
 
@@ -102,11 +101,6 @@ watch(
 )
 
 onMounted(() => {
-    startButton.value?.focus()
-    window.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
+    focusModeButton(selectedMode.value)
 })
 </script>

@@ -20,7 +20,7 @@ const props = defineProps({
 const style = computed(() => ({
     left: `${(props.x / props.cols) * 100}%`,
     top: `${(props.y / props.rows) * 100}%`,
-    width: `${(1 / props.cols) * 100}%`,
-    height: `${(1 / props.rows) * 100}%`,
+    width: `${100 / props.cols}%`,
+    height: `${100 / props.rows}%`,
 }))
 </script>

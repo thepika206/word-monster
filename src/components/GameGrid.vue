@@ -1,5 +1,5 @@
 <template>
-    <div class="relative mx-auto aspect-[5/4] w-full max-w-xl select-none">
+    <div class="relative mx-auto aspect-square w-full max-w-xl select-none">
         <div
             class="grid h-full w-full gap-1"
             :style="{
