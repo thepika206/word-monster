@@ -7,7 +7,12 @@
                 gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
             }"
         >
-            <WordTile v-for="tile in tiles" :key="tile.id" :tile="tile" />
+            <WordTile
+                v-for="tile in tiles"
+                :key="tile.id"
+                :tile="tile"
+                :reveal-correct="status === 'lost'"
+            />
         </div>
         <PlayerMonster
             :x="monster.x"
@@ -15,6 +20,7 @@
             :cols="cols"
             :rows="rows"
             :word="monsterWord"
+            :hit="monster.hit"
         />
         <GameEnemy
             v-for="enemy in enemies"
@@ -39,6 +45,7 @@ const props = defineProps({
     enemies: { type: Array, required: true },
     cols: { type: Number, required: true },
     rows: { type: Number, required: true },
+    status: { type: String, default: 'playing' },
 })
 
 const monsterWord = computed(() => {

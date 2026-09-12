@@ -1,12 +1,6 @@
 <template>
     <div class="pointer-events-none absolute transition-all duration-150 ease-out" :style="style">
         <div class="flex h-full w-full items-center justify-center text-2xl sm:text-3xl">🐲</div>
-        <span
-            v-if="word"
-            class="absolute inset-x-0 bottom-0 truncate rounded bg-slate-900/80 px-0.5 text-center text-[0.55rem] font-bold uppercase leading-tight text-amber-200 sm:text-[0.65rem]"
-        >
-            {{ word }}
-        </span>
     </div>
 </template>
 
@@ -19,6 +13,7 @@ const props = defineProps({
     cols: { type: Number, required: true },
     rows: { type: Number, required: true },
     word: { type: String, default: '' },
+    hit: { type: Boolean, default: false },
 })
 
 const style = computed(() => ({

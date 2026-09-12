@@ -5,7 +5,7 @@
         </h1>
 
         <ScoreBar :score="score" :round="round" :lives-left="lives" />
-        <PromptBanner :prompt-text="promptText" :message="message" />
+        <PromptBanner :prompt-text="promptText" :message="message" @restart="restart" />
 
         <div class="relative w-full max-w-xl">
             <GameGrid
@@ -14,9 +14,9 @@
                 :enemies="enemies"
                 :cols="COLS"
                 :rows="ROWS"
+                :status="status"
             />
-            <StartScreen v-if="status === 'start'" @start="startGame" />
-            <GameOverlay v-if="status === 'lost'" :score="score" @restart="restart" />
+            <StartScreen v-if="status === 'start'" :mode="challengeMode" @start="startGame" />
             <RoundCompleteOverlay
                 v-if="status === 'round-complete'"
                 :round="round"
@@ -37,7 +37,6 @@ import ScoreBar from './components/ScoreBar.vue'
 import PromptBanner from './components/PromptBanner.vue'
 import GameGrid from './components/GameGrid.vue'
 import TouchControls from './components/TouchControls.vue'
-import GameOverlay from './components/GameOverlay.vue'
 import RoundCompleteOverlay from './components/RoundCompleteOverlay.vue'
 import StartScreen from './components/StartScreen.vue'
 import { useGameState } from './composables/useGameState.js'
@@ -52,6 +51,7 @@ const {
     status,
     message,
     promptText,
+    challengeMode,
     tiles,
     monster,
     enemies,

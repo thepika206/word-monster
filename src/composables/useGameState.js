@@ -1,14 +1,16 @@
 import { onUnmounted, reactive, ref } from 'vue'
 import { challenges } from '../data/spellingChallenges.js'
+import { synonymChallenges } from '../data/synonymChallenges.js'
 
 export const COLS = 5
 export const ROWS = 4
 const WORDS_PER_ROUND = 5
 const ENEMY_COUNT = 1
-const ENEMY_MOVE_MS = 2700
+const ENEMY_MOVE_MS = 3600
 const STARTING_LIVES = 3
-const HIT_PAUSE_MS = 1000
+const HIT_PAUSE_MS = 500
 const PROMPT_TEXT = 'Eat the correctly spelled words'
+const SYNONYM_PROMPT_TEXT = 'Eat words that mean the same as'
 
 function randomItem(list) {
     return list[Math.floor(Math.random() * list.length)]
@@ -30,13 +32,15 @@ export function useGameState() {
     const status = ref('start') // 'start' | 'playing' | 'hit' | 'round-complete' | 'lost'
     const message = ref('')
     const promptText = ref('')
+    const challengeMode = ref('spelling')
     const tiles = ref([])
     const correctRemaining = ref(0)
-    const monster = reactive({ x: Math.floor(COLS / 2), y: ROWS - 1 })
+    const monster = reactive({ x: Math.floor(COLS / 2), y: ROWS - 1, hit: false })
     const enemies = reactive([])
 
     let enemyTimer = null
     let hitTimer = null
+    let enemyMoveCount = 0
 
     function tileIndex(x, y) {
         return y * COLS + x
@@ -54,7 +58,11 @@ export function useGameState() {
     }
 
     function pickRoundWords() {
-        return shuffle(challenges).slice(0, Math.min(WORDS_PER_ROUND, challenges.length))
+        const activeChallenges = challengeMode.value === 'synonyms' ? synonymChallenges : challenges
+        return shuffle(activeChallenges).slice(
+            0,
+            Math.min(WORDS_PER_ROUND, activeChallenges.length),
+        )
     }
 
     function buildTiles(roundWords) {
@@ -78,6 +86,43 @@ export function useGameState() {
         }))
     }
 
+    function buildSynonymTiles(challenge) {
+        const target = randomItem(challenge.correct)
+        const validTargetWord = target
+        const otherSynonyms = shuffle([
+            ...new Set(challenge.correct.filter((word) => word !== target)),
+        ])
+        const incorrectWords = shuffle([...new Set(challenge.incorrect)])
+        const fillerWords = shuffle([...new Set(challenge.filler || [])])
+        const total = COLS * ROWS
+        const boardPool = [...otherSynonyms, ...incorrectWords, ...fillerWords]
+        const entries = shuffle(boardPool)
+
+        while (entries.length < total - 1) {
+            entries.push(randomItem(boardPool))
+        }
+
+        entries.push(validTargetWord)
+
+        const placedEntries = entries.slice(0, total).map((word) => ({
+            word,
+            correct: word === validTargetWord,
+        }))
+
+        const shuffled = shuffle(placedEntries)
+        return {
+            target,
+            tileData: shuffled.map((entry, i) => ({
+                id: `${round.value}-${i}-${entry.word}`,
+                x: i % COLS,
+                y: Math.floor(i / COLS),
+                word: entry.word,
+                correct: entry.correct,
+                eaten: false,
+            })),
+        }
+    }
+
     function spawnEnemies() {
         enemies.splice(0, enemies.length)
         const spots = emptyCells([{ x: monster.x, y: monster.y }]).filter((c) => c.y === 0)
@@ -93,11 +138,29 @@ export function useGameState() {
             clearTimeout(hitTimer)
             hitTimer = null
         }
+        enemyMoveCount = 0
+
+        if (challengeMode.value === 'synonyms') {
+            const synonymGroup = randomItem(synonymChallenges)
+            const { target, tileData } = buildSynonymTiles(synonymGroup)
+            promptText.value = `${SYNONYM_PROMPT_TEXT} ${target.toUpperCase()}`
+            tiles.value = tileData
+            correctRemaining.value = tiles.value.filter((t) => t.correct).length
+            monster.x = Math.floor(COLS / 2)
+            monster.y = ROWS - 1
+            monster.hit = false
+            spawnEnemies()
+            message.value = ''
+            status.value = 'playing'
+            return
+        }
+
         promptText.value = PROMPT_TEXT
         tiles.value = buildTiles(pickRoundWords())
         correctRemaining.value = tiles.value.filter((t) => t.correct).length
         monster.x = Math.floor(COLS / 2)
         monster.y = ROWS - 1
+        monster.hit = false
         spawnEnemies()
         message.value = ''
         status.value = 'playing'
@@ -107,6 +170,8 @@ export function useGameState() {
         lives.value -= 1
         if (lives.value <= 0) {
             status.value = 'lost'
+            promptText.value = 'Game Over'
+            message.value = 'Game Over'
             if (enemyTimer) clearInterval(enemyTimer)
         }
     }
@@ -116,9 +181,11 @@ export function useGameState() {
         if (!hit || status.value !== 'playing') return
         message.value = 'Ouch!'
         status.value = 'hit'
+        monster.hit = true
         loseLife()
         if (status.value === 'lost') return
         hitTimer = setTimeout(() => {
+            monster.hit = false
             monster.x = Math.floor(COLS / 2)
             monster.y = ROWS - 1
             spawnEnemies()
@@ -158,6 +225,8 @@ export function useGameState() {
 
     function moveEnemiesOnce() {
         if (status.value !== 'playing') return
+        enemyMoveCount += 1
+        const randomStep = enemyMoveCount % 5 === 0
         const dirs = [
             { dx: 0, dy: -1 },
             { dx: 0, dy: 1 },
@@ -165,11 +234,25 @@ export function useGameState() {
             { dx: 1, dy: 0 },
         ]
         for (const enemy of enemies) {
-            const options = dirs
+            let options = dirs
                 .map(({ dx, dy }) => ({ x: enemy.x + dx, y: enemy.y + dy }))
                 .filter((p) => p.x >= 0 && p.x < COLS && p.y >= 0 && p.y < ROWS)
+
+            if (!randomStep) {
+                const dxToPlayer = Math.sign(monster.x - enemy.x)
+                const dyToPlayer = Math.sign(monster.y - enemy.y)
+                const chaseDirs = []
+
+                if (dxToPlayer !== 0) chaseDirs.push({ dx: dxToPlayer, dy: 0 })
+                if (dyToPlayer !== 0) chaseDirs.push({ dx: 0, dy: dyToPlayer })
+
+                options = [...chaseDirs, ...dirs]
+                    .map(({ dx, dy }) => ({ x: enemy.x + dx, y: enemy.y + dy }))
+                    .filter((p) => p.x >= 0 && p.x < COLS && p.y >= 0 && p.y < ROWS)
+            }
+
             if (options.length > 0) {
-                const next = randomItem(options)
+                const next = randomStep ? randomItem(options) : options[0]
                 enemy.x = next.x
                 enemy.y = next.y
             }
@@ -183,13 +266,25 @@ export function useGameState() {
     }
 
     function restart() {
+        if (enemyTimer) clearInterval(enemyTimer)
+        enemyTimer = null
         score.value = 0
         lives.value = STARTING_LIVES
         round.value = 1
-        startRound()
+        message.value = ''
+        promptText.value = ''
+        tiles.value = []
+        enemies.splice(0, enemies.length)
+        monster.x = Math.floor(COLS / 2)
+        monster.y = ROWS - 1
+        monster.hit = false
+        status.value = 'start'
     }
 
-    function startGame() {
+    function startGame(mode = challengeMode.value) {
+        challengeMode.value = mode
+        if (enemyTimer) clearInterval(enemyTimer)
+        enemyTimer = null
         startRound()
         enemyTimer = setInterval(moveEnemiesOnce, ENEMY_MOVE_MS)
     }
@@ -208,6 +303,7 @@ export function useGameState() {
         status,
         message,
         promptText,
+        challengeMode,
         tiles,
         monster,
         enemies,

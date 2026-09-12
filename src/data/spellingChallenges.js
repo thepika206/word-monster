@@ -62,4 +62,59 @@ export const challenges = [
         correct: ['february'],
         incorrect: ['feburary', 'febuary', 'februray', 'februwary'],
     },
+    {
+        target: 'THROUGH',
+        correct: ['through'],
+        incorrect: ['thru', 'throuh', 'throug', 'throu'],
+    },
+    {
+        target: 'MACHINE',
+        correct: ['machine'],
+        incorrect: ['machiene', 'machin', 'mashine', 'machiene'],
+    },
+    {
+        target: 'ALREADY',
+        correct: ['already'],
+        incorrect: ['alredy', 'allready', 'alrady', 'alreaday'],
+    },
+    {
+        target: 'KNOWLEDGE',
+        correct: ['knowledge'],
+        incorrect: ['knowlege', 'knowlage', 'knowldge', 'knowlegde'],
+    },
+    {
+        target: 'QUESTION',
+        correct: ['question'],
+        incorrect: ['queston', 'qustion', 'questionn', 'qestion'],
+    },
+    {
+        target: 'REMEMBER',
+        correct: ['remember'],
+        incorrect: ['rember', 'remeber', 'remeber', 'rememebr'],
+    },
+    {
+        target: 'SEPARATE',
+        correct: ['separate'],
+        incorrect: ['seperate', 'seperat', 'seperete', 'sepperate'],
+    },
+    {
+        target: 'SUPER',
+        correct: ['super'],
+        incorrect: ['supr', 'supper', 'supre', 'supeer'],
+    },
+    {
+        target: 'TOMORROW',
+        correct: ['tomorrow'],
+        incorrect: ['tommorow', 'tomorow', 'tommorrow', 'tomoorrow'],
+    },
+    {
+        target: 'DELIGHTFUL',
+        correct: ['delightful'],
+        incorrect: ['delightfull', 'deliteful', 'delightfule', 'delightful'],
+    },
+    {
+        target: 'NEVER',
+        correct: ['never'],
+        incorrect: ['nevr', 'neverr', 'nevver', 'nver'],
+    },
 ]
