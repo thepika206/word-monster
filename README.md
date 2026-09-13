@@ -50,6 +50,54 @@ src/
   App.vue                        wires state + components together
 ```
 
+## How the game works
+
+The round starts from the intro screen, where the player chooses either
+**Spelling** or **Synonyms**. Once a mode is selected, `startGame()` sets the
+challenge mode, resets the monster and lives, and calls `startRound()` to build
+that round's board and prompt.
+
+From there, the game loop is simple:
+
+- the board is rendered as a 5x5 grid of 25 tiles
+- the player moves with arrow keys/WASD or the touch controls
+- eating a correct tile adds points and decrements the remaining correct count
+- eating a wrong tile loses a life and updates the message banner
+- touching an enemy triggers a hit state, pauses the game briefly, then resets
+  the player and ghosts to their starting positions
+- when all correct tiles are cleared, the round advances and a new prompt is
+  generated
+
+### Board construction
+
+`useGameState.js` owns the board logic. Each tile is a plain object with a
+`word`, `correct`, `eaten`, and grid position (`x`, `y`). The board is built in
+one of two ways:
+
+- **Spelling mode**: each round picks a set of challenge words, samples the
+  correct answer from each challenge, then fills the remaining cells with
+  incorrect words from the same challenge pool.
+- **Synonym mode**: the challenge contains a separate `target` word, a list of
+  valid matching words, and a list of distractors. The target is used only for
+  the prompt, and it is intentionally excluded from the board so the player is
+  not shown the answer directly.
+
+The board is always a 25-cell grid, so the game state is consistent across the
+rounds and both modes.
+
+### Enemy movement
+
+Enemies are spawned along the top row and chase the player from there. A timer
+runs in the background and repeatedly calls `moveEnemiesOnce()`, which:
+
+- updates each ghost's position one step at a time
+- every fifth movement step shifts the enemy toward the player's current
+  position instead of moving randomly
+- checks for a collision against the monster immediately after each move
+
+This makes the enemies feel like they are roaming at first, then becoming more
+aggressive as the round continues.
+
 ## Learning notes
 
 Since this project is a vehicle for learning Vue and Tailwind, here's how
